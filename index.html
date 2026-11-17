@@ -1,0 +1,3595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLUX.TOOLS — Utilitas Gambar &amp; Dokumen Offline</title>
+
+  <!-- Library Eksternal Terpin dari cdnjs.cloudflare.com -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    /* ==========================================================================
+       1. VARIABEL TEMA & RESET DASAR (LIGHT & DARK MODE)
+       ========================================================================== */
+    :root {
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f1f5f9;
+      --bg-hover: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --border-subtle: #e2e8f0;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --accent-soft: #e0f2fe;
+      --accent-text: #0369a1;
+      --neon-cyan: #00f2fe;
+      --neon-blue: #0ea5e9;
+      --neon-glow: 0 0 14px rgba(14, 165, 233, 0.45);
+      --success: #059669;
+      --success-soft: #d1fae5;
+      --warning: #d97706;
+      --warning-soft: #fef3c7;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --checker-1: #e2e8f0;
+      --checker-2: #ffffff;
+    }
+
+    html.dark {
+      --bg-body: #060b19;
+      --bg-surface: #0f172a;
+      --bg-surface-alt: #162036;
+      --bg-hover: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border-color: #1e293b;
+      --border-subtle: #0f172a;
+      --accent: #0ea5e9;
+      --accent-hover: #38bdf8;
+      --accent-soft: rgba(14, 165, 233, 0.16);
+      --accent-text: #38bdf8;
+      --neon-cyan: #00f2fe;
+      --neon-blue: #38bdf8;
+      --neon-glow: 0 0 18px rgba(0, 242, 254, 0.55), 0 0 32px rgba(14, 165, 233, 0.25);
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-soft: rgba(245, 158, 11, 0.15);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.6), 0 0 15px rgba(14, 165, 233, 0.12);
+      --checker-1: #1e293b;
+      --checker-2: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* ==========================================================================
+       2. LAYOUT & HEADER
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    header.app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-text-accent {
+      background: linear-gradient(90deg, #0ea5e9, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .neon-pp-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 20%, #0f172a, #020617);
+      border: 1.5px solid #00f2fe;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.55), inset 0 0 10px rgba(14, 165, 233, 0.4);
+      flex-shrink: 0;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .brand:hover .neon-pp-avatar {
+      transform: scale(1.06);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.85), inset 0 0 14px rgba(14, 165, 233, 0.6);
+    }
+
+    .dev-card-footer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-surface-alt);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      box-shadow: var(--neon-glow);
+    }
+
+    .dev-pp-lg {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #0f172a, #020617);
+      border: 2px solid #00f2fe;
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.65);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .privacy-pill {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--success-soft);
+      color: var(--success);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    @media (min-width: 860px) {
+      .privacy-pill {
+        display: inline-flex;
+      }
+    }
+
+    .theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 42px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      background-color: var(--bg-hover);
+    }
+
+    /* ==========================================================================
+       3. HERO & GRID BERANDA
+       ========================================================================== */
+    main {
+      flex: 1;
+      padding: 24px 0 48px;
+    }
+
+    .hero {
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto 32px;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .privacy-banner-mobile {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--success-soft);
+      color: var(--success);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 14px 44px 14px 44px;
+      font-size: 1rem;
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-color);
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-surface-alt);
+      border: none;
+      color: var(--text-secondary);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .tools-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 960px) {
+      .tools-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+    }
+
+    .tool-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg), var(--neon-glow);
+      border-color: var(--neon-blue);
+    }
+
+    .tool-card:active {
+      transform: translateY(0);
+    }
+
+    .tool-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-emoji {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background-color: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+
+    .tool-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background-color: var(--bg-surface-alt);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .tool-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .tool-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    .tool-card-action {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-text);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       4. WORKSPACE TOOL (TAMPILAN AKTIF)
+       ========================================================================== */
+    .workspace-view {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .workspace-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .workspace-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-back:hover {
+      background-color: var(--bg-hover);
+    }
+
+    .tool-switcher {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-height: 44px;
+      cursor: pointer;
+      max-width: 100%;
+    }
+
+    .tool-header {
+      margin-bottom: 20px;
+    }
+
+    .tool-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .tool-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* ==========================================================================
+       5. KOMPONEN UI UMUM (DROPZONE, BUTTON, FORM, CANVAS)
+       ========================================================================== */
+    .panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 900px) {
+      .two-col {
+        grid-template-columns: 1.25fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-surface-alt);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 160px;
+    }
+
+    .dropzone:hover,
+    .dropzone.dragover {
+      border-color: var(--accent);
+      background-color: var(--accent-soft);
+    }
+
+    .dropzone-icon {
+      font-size: 2.2rem;
+    }
+
+    .dropzone-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .dropzone-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .form-label span.val-badge {
+      background-color: var(--accent-soft);
+      color: var(--accent-text);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      min-height: 44px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="password"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background-color: var(--bg-surface);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--border-color);
+      outline: none;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    input[type="color"] {
+      width: 48px;
+      height: 44px;
+      padding: 2px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+    }
+
+    .row-flex {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 46px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(14, 165, 233, 0.38);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.55);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: #ffffff;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      filter: brightness(1.08);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--bg-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background-color: var(--danger);
+      color: #ffffff;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      min-height: 36px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 600;
+      min-height: 38px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Area Preview Canvas Checkerboard (Transparan) */
+    .canvas-stage {
+      width: 100%;
+      min-height: 280px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background-image:
+        linear-gradient(45deg, var(--checker-1) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--checker-1) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--checker-1) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+      background-color: var(--checker-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .canvas-stage canvas {
+      max-width: 100%;
+      max-height: 460px;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: var(--shadow-md);
+      touch-action: none;
+    }
+
+    .info-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    /* Swatch Warna Pas Foto */
+    .swatch-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .swatch-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-color);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 44px;
+    }
+
+    .swatch-btn.active {
+      border-color: var(--accent);
+      background-color: var(--accent-soft);
+    }
+
+    .swatch-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+
+    /* List Item untuk Kompres & PDF */
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+
+    .file-item-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .file-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .file-meta {
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+
+    .file-stats {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .badge-save {
+      display: inline-block;
+      background-color: var(--success-soft);
+      color: var(--success);
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    /* Kotak Teks List Meme Generator */
+    .meme-layer-card {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      margin-bottom: 10px;
+    }
+
+    .meme-layer-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    /* QR Preview Container */
+    .qr-preview-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .qr-preview-box canvas,
+    .qr-preview-box img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ==========================================================================
+       6. LOADING OVERLAY, TOAST & FOOTER
+       ========================================================================== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 90;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: #ffffff;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      left: 20px;
+      max-width: 400px;
+      margin-left: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border-left: 4px solid var(--accent);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      animation: slideIn 0.25s ease;
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer.app-footer {
+      background-color: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 20px 16px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER UTAMA -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand" id="brandHomeBtn" title="BLUX.TOOLS — Kembali ke Beranda">
+        <span class="neon-pp-avatar" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bluxNeonGrad" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#38bdf8" />
+              </linearGradient>
+              <filter id="neonFilter" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <polygon points="18,2 32,10 32,26 18,34 4,26 4,10" stroke="url(#bluxNeonGrad)" stroke-width="2" fill="rgba(14,165,233,0.12)" filter="url(#neonFilter)" />
+            <path d="M12 10H19.5C21.7 10 23.2 11.2 23.2 13.1C23.2 14.5 22.3 15.6 21 16C22.7 16.4 23.8 17.7 23.8 19.5C23.8 21.8 22 23.2 19.3 23.2H12V10ZM15.2 15H18.7C19.6 15 20.2 14.4 20.2 13.6C20.2 12.8 19.6 12.3 18.7 12.3H15.2V15ZM15.2 20.8H19C20 20.8 20.7 20.2 20.7 19.3C20.7 18.4 20 17.8 19 17.8H15.2V20.8Z" fill="url(#bluxNeonGrad)" filter="url(#neonFilter)" />
+            <circle cx="26.5" cy="11.5" r="1.8" fill="#00f2fe" />
+          </svg>
+        </span>
+        <span>BLUX<span class="brand-text-accent">.TOOLS</span></span>
+      </a>
+
+      <div class="privacy-pill">
+        <span>🔒</span>
+        <span>Semua file diproses di perangkat kamu dan tidak dikirim ke mana pun.</span>
+      </div>
+
+      <button type="button" class="theme-btn" id="themeToggleBtn" aria-label="Ganti Tema">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Mode Gelap</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- KONTEN UTAMA -->
+  <main class="container">
+    <!-- HALAMAN BERANDA (GRID 10 TOOLS) -->
+    <section id="homeView">
+      <div class="hero">
+        <h1>BLUX<span class="brand-text-accent">.TOOLS</span> — 10 Utilitas Gambar &amp; Dokumen</h1>
+        <p>Cepat, gratis, tanpa instalasi, dan 100% bekerja offline langsung di browser kamu.</p>
+        <div class="privacy-banner-mobile">
+          <span>🛡️</span>
+          <span>Semua file diproses di perangkat kamu dan tidak dikirim ke mana pun.</span>
+        </div>
+
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="toolSearchInput" placeholder="Cari tool (misal: stiker, pas foto, PDF, KTP, QR)..." autocomplete="off" />
+          <button type="button" class="search-clear" id="toolSearchClear" title="Hapus pencarian">✕</button>
+        </div>
+      </div>
+
+      <div class="tools-grid" id="toolsGrid"></div>
+      <div id="emptySearchMsg" class="info-box hidden" style="text-align:center; max-width:480px; margin:24px auto;">
+        Tidak ada tool yang cocok dengan kata kunci pencarianmu.
+      </div>
+    </section>
+
+    <!-- HALAMAN WORKSPACE TOOL AKTIF -->
+    <section id="workspaceView" class="workspace-view">
+      <div class="workspace-nav">
+        <button type="button" class="btn-back" id="backToHomeBtn">
+          <span>←</span>
+          <span>Kembali ke Semua Tool</span>
+        </button>
+
+        <select id="quickToolSwitcher" class="tool-switcher" aria-label="Pindah Cepat Antar Tool"></select>
+      </div>
+
+      <div id="toolMountArea"></div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <div class="container">
+      <p style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+        🔒 Privasi Terjamin: Semua file diproses di perangkat kamu dan tidak dikirim ke mana pun.
+      </p>
+      <p><strong>BLUX.TOOLS</strong> — Diproses 100% lokal menggunakan HTML5 Canvas, FileReader &amp; Blob API.</p>
+
+      <div class="dev-card-footer">
+        <span class="dev-pp-lg" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="18" r="15" stroke="#00f2fe" stroke-width="1.8" stroke-dasharray="4 2" />
+            <path d="M12 10H19.5C21.7 10 23.2 11.2 23.2 13.1C23.2 14.5 22.3 15.6 21 16C22.7 16.4 23.8 17.7 23.8 19.5C23.8 21.8 22 23.2 19.3 23.2H12V10ZM15.2 15H18.7C19.6 15 20.2 14.4 20.2 13.6C20.2 12.8 19.6 12.3 18.7 12.3H15.2V15ZM15.2 20.8H19C20 20.8 20.7 20.2 20.7 19.3C20.7 18.4 20 17.8 19 17.8H15.2V20.8Z" fill="#00f2fe" />
+          </svg>
+        </span>
+        <div style="text-align:left;">
+          <div style="font-weight:800; color:var(--text-primary); font-size:0.9rem;">Developer BLUX.TOOLS</div>
+          <div style="font-size:0.84rem; color:var(--accent-text); font-weight:700;">📞 08211531454</div>
+        </div>
+        <div class="row-flex">
+          <button type="button" class="btn btn-secondary btn-sm" id="copyDevPhoneBtn" title="Salin Nomor Developer">
+            📋 Salin Nomor
+          </button>
+          <a href="https://wa.me/628211531454" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+            💬 Hubungi WA
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText" style="font-weight: 700; font-size: 1rem;">Memproses file...</div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    "use strict";
+
+    /* ==========================================================================
+       MODUL INTI: UTILITAS GLOBAL, VALIDASI FILE, TOAST, TEMA & NAVIGASI
+       ========================================================================== */
+    const AppCore = {
+      MAX_FILE_SIZE: 25 * 1024 * 1024, // Batas peringatan ukuran file 25 MB
+      currentToolId: null,
+      isDark: false,
+
+      // Daftar definisi 10 Tools
+      tools: [
+        {
+          id: "wa-sticker",
+          num: "01",
+          icon: "💬",
+          title: "Pembuat Stiker WhatsApp",
+          desc: "Crop persegi interaktif 512x512 px, tambah outline putih & teks, ekspor WebP < 100 KB.",
+          keywords: "whatsapp wa stiker sticker webp crop outline"
+        },
+        {
+          id: "meme-sticker",
+          num: "02",
+          icon: "😂",
+          title: "Pembuat Stiker Meme",
+          desc: "Teks atas & bawah klasik font Impact dengan outline hitam, output 512x512 PNG/WebP.",
+          keywords: "meme stiker impact teks atas bawah lucu"
+        },
+        {
+          id: "meme-generator",
+          num: "03",
+          icon: "🎨",
+          title: "Meme Generator",
+          desc: "Ukuran bebas sesuai gambar asli, tambah banyak kotak teks yang bisa digeser (drag).",
+          keywords: "meme generator bebas drag teks banyak"
+        },
+        {
+          id: "remove-bg",
+          num: "04",
+          icon: "🪄",
+          title: "Hapus Background Warna Polos",
+          desc: "Klik warna background di gambar, atur toleransi slider, hasil PNG transparan.",
+          keywords: "hapus background bg transparan chroma key png"
+        },
+        {
+          id: "compress-image",
+          num: "05",
+          icon: "🗜️",
+          title: "Kompres Gambar",
+          desc: "Perkecil ukuran banyak gambar sekaligus dengan slider kualitas, unduh satuan atau ZIP.",
+          keywords: "kompres perkecil ukuran mb kb zip batch"
+        },
+        {
+          id: "resize-convert",
+          num: "06",
+          icon: "📐",
+          title: "Resize & Konversi Gambar",
+          desc: "Ubah dimensi piksel (kunci rasio aspek) dan konversi format JPG, PNG, atau WebP.",
+          keywords: "resize ubah ukuran dimensi konversi jpg png webp"
+        },
+        {
+          id: "pas-foto",
+          num: "07",
+          icon: "🪪",
+          title: "Pas Foto Maker",
+          desc: "Ukuran 2x3, 3x4, 4x6, background merah/biru/putih, susun otomatis di kertas 4R siap cetak.",
+          keywords: "pas foto 2x3 3x4 4x6 merah biru 4r cetak"
+        },
+        {
+          id: "watermark-doc",
+          num: "08",
+          icon: "🛡️",
+          title: "Watermark Dokumen",
+          desc: "Tambahkan teks watermark diagonal berulang untuk mengamankan scan KTP/KK/dokumen.",
+          keywords: "watermark ktp kk dokumen aman diagonal"
+        },
+        {
+          id: "image-to-pdf",
+          num: "09",
+          icon: "📄",
+          title: "Gambar ke PDF",
+          desc: "Gabungkan banyak gambar, atur urutan halaman, pilih ukuran A4 atau F4 dan orientasi.",
+          keywords: "gambar foto ke pdf a4 f4 gabung dokumen"
+        },
+        {
+          id: "qr-generator",
+          num: "10",
+          icon: "📱",
+          title: "Pembuat QR Code",
+          desc: "Buat QR Code untuk Teks, URL, atau WiFi dengan kustomisasi warna & ukuran PNG.",
+          keywords: "qr code barcode wifi url link png"
+        }
+      ],
+
+      init() {
+        this.initTheme();
+        this.renderHomeGrid();
+        this.initSearch();
+        this.initNavigation();
+        this.initDeveloperContact();
+      },
+
+      // Tombol salin nomor developer (08211531454)
+      initDeveloperContact() {
+        const copyBtn = document.getElementById("copyDevPhoneBtn");
+        if (!copyBtn) return;
+        copyBtn.addEventListener("click", () => {
+          const phone = "08211531454";
+          const tempInput = document.createElement("input");
+          tempInput.value = phone;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          try {
+            document.execCommand("copy");
+            this.toast(`Nomor developer ${phone} berhasil disalin!`, "success");
+          } catch (err) {
+            this.toast(`Nomor developer: ${phone}`, "info");
+          }
+          document.body.removeChild(tempInput);
+        });
+      },
+
+      // Inisialisasi Tema Otomatis (prefers-color-scheme) tanpa localStorage
+      initTheme() {
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        this.setTheme(prefersDark);
+
+        document.getElementById("themeToggleBtn").addEventListener("click", () => {
+          this.setTheme(!this.isDark);
+        });
+      },
+
+      setTheme(dark) {
+        this.isDark = dark;
+        document.documentElement.classList.toggle("dark", dark);
+        document.getElementById("themeIcon").textContent = dark ? "☀️" : "🌙";
+        document.getElementById("themeLabel").textContent = dark ? "Mode Terang" : "Mode Gelap";
+      },
+
+      // Render Kartu 10 Tools di Halaman Utama & Dropdown Switcher
+      renderHomeGrid(filterText = "") {
+        const grid = document.getElementById("toolsGrid");
+        const emptyMsg = document.getElementById("emptySearchMsg");
+        const switcher = document.getElementById("quickToolSwitcher");
+        const q = filterText.trim().toLowerCase();
+
+        grid.innerHTML = "";
+        switcher.innerHTML = "";
+
+        let visibleCount = 0;
+
+        this.tools.forEach((tool) => {
+          // Isi dropdown switcher cepat
+          const opt = document.createElement("option");
+          opt.value = tool.id;
+          opt.textContent = `${tool.icon} ${tool.num}. ${tool.title}`;
+          switcher.appendChild(opt);
+
+          // Filter pencarian
+          const match = !q ||
+            tool.title.toLowerCase().includes(q) ||
+            tool.desc.toLowerCase().includes(q) ||
+            tool.keywords.toLowerCase().includes(q);
+
+          if (match) {
+            visibleCount++;
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = "tool-card";
+            card.innerHTML = `
+              <div class="tool-card-top">
+                <div class="tool-emoji">${tool.icon}</div>
+                <span class="tool-num">Tool #${tool.num}</span>
+              </div>
+              <h3>${tool.title}</h3>
+              <p>${tool.desc}</p>
+              <div class="tool-card-action">Buka Tool <span>→</span></div>
+            `;
+            card.addEventListener("click", () => this.openTool(tool.id));
+            grid.appendChild(card);
+          }
+        });
+
+        emptyMsg.classList.toggle("hidden", visibleCount > 0);
+      },
+
+      initSearch() {
+        const input = document.getElementById("toolSearchInput");
+        const clearBtn = document.getElementById("toolSearchClear");
+
+        input.addEventListener("input", () => {
+          const val = input.value;
+          clearBtn.style.display = val ? "flex" : "none";
+          this.renderHomeGrid(val);
+        });
+
+        clearBtn.addEventListener("click", () => {
+          input.value = "";
+          clearBtn.style.display = "none";
+          this.renderHomeGrid("");
+          input.focus();
+        });
+      },
+
+      initNavigation() {
+        document.getElementById("brandHomeBtn").addEventListener("click", (e) => {
+          e.preventDefault();
+          this.goHome();
+        });
+
+        document.getElementById("backToHomeBtn").addEventListener("click", () => {
+          this.goHome();
+        });
+
+        document.getElementById("quickToolSwitcher").addEventListener("change", (e) => {
+          this.openTool(e.target.value);
+        });
+      },
+
+      goHome() {
+        this.currentToolId = null;
+        document.getElementById("workspaceView").classList.remove("active");
+        document.getElementById("homeView").classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      },
+
+      openTool(toolId) {
+        const tool = this.tools.find((t) => t.id === toolId);
+        if (!tool) return;
+
+        this.currentToolId = toolId;
+        document.getElementById("homeView").classList.add("hidden");
+        document.getElementById("workspaceView").classList.add("active");
+        document.getElementById("quickToolSwitcher").value = toolId;
+
+        const mount = document.getElementById("toolMountArea");
+        mount.innerHTML = `
+          <div class="tool-header">
+            <h2><span>${tool.icon}</span> <span>${tool.title}</span></h2>
+            <p>${tool.desc}</p>
+          </div>
+          <div id="toolBody"></div>
+        `;
+
+        // Panggil fungsi render modul tool terkait
+        const moduleMap = {
+          "wa-sticker": Tool1_WASticker,
+          "meme-sticker": Tool2_MemeSticker,
+          "meme-generator": Tool3_MemeGenerator,
+          "remove-bg": Tool4_RemoveBg,
+          "compress-image": Tool5_Compress,
+          "resize-convert": Tool6_ResizeConvert,
+          "pas-foto": Tool7_PasFoto,
+          "watermark-doc": Tool8_WatermarkDoc,
+          "image-to-pdf": Tool9_ImageToPdf,
+          "qr-generator": Tool10_QrGenerator
+        };
+
+        if (moduleMap[toolId]) {
+          moduleMap[toolId].mount(document.getElementById("toolBody"));
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      },
+
+      // Tampilkan Notifikasi Toast
+      toast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const el = document.createElement("div");
+        el.className = `toast ${type}`;
+        const iconMap = { success: "✅", error: "❌", warning: "⚠️", info: "ℹ️" };
+        el.innerHTML = `
+          <span>${iconMap[type] || "ℹ️"} ${this.escapeHtml(message)}</span>
+          <button type="button" style="background:none;border:none;color:inherit;cursor:pointer;font-weight:bold;">✕</button>
+        `;
+        el.querySelector("button").addEventListener("click", () => el.remove());
+        container.appendChild(el);
+        setTimeout(() => {
+          if (el.parentNode) el.remove();
+        }, 4200);
+      },
+
+      // Loading Overlay
+      setLoading(show, text = "Memproses file...") {
+        const overlay = document.getElementById("loadingOverlay");
+        document.getElementById("loadingText").textContent = text;
+        overlay.classList.toggle("active", show);
+      },
+
+      // Validasi File Gambar
+      validateImageFile(file) {
+        if (!file) return false;
+        if (!file.type || !file.type.startsWith("image/")) {
+          this.toast(`File "${file.name}" bukan gambar yang valid.`, "error");
+          return false;
+        }
+        if (file.size > this.MAX_FILE_SIZE) {
+          this.toast(`File "${file.name}" terlalu besar (${this.formatBytes(file.size)}). Maksimal 25 MB.`, "error");
+          return false;
+        }
+        return true;
+      },
+
+      // Helper Membaca File Gambar menjadi HTMLImageElement
+      loadImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+          if (!this.validateImageFile(file)) {
+            reject(new Error("File tidak valid"));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+              this.toast(`Gagal memuat gambar "${file.name}".`, "error");
+              reject(new Error("Gagal memuat gambar"));
+            };
+            img.src = e.target.result;
+          };
+          reader.onerror = () => {
+            this.toast("Gagal membaca file dari perangkat.", "error");
+            reject(new Error("FileReader error"));
+          };
+          reader.readAsDataURL(file);
+        });
+      },
+
+      // Helper Setup Drag & Drop Zone
+      setupDropzone(dropzoneEl, fileInputEl, onFilesCallback) {
+        dropzoneEl.addEventListener("click", () => fileInputEl.click());
+
+        fileInputEl.addEventListener("change", (e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            onFilesCallback(Array.from(e.target.files));
+            fileInputEl.value = "";
+          }
+        });
+
+        ["dragenter", "dragover"].forEach((evt) => {
+          dropzoneEl.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneEl.classList.add("dragover");
+          });
+        });
+
+        ["dragleave", "drop"].forEach((evt) => {
+          dropzoneEl.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneEl.classList.remove("dragover");
+          });
+        });
+
+        dropzoneEl.addEventListener("drop", (e) => {
+          const files = e.dataTransfer && e.dataTransfer.files;
+          if (files && files.length > 0) {
+            onFilesCallback(Array.from(files));
+          }
+        });
+      },
+
+      // Helper Unduh Blob ke Perangkat
+      downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+
+      // Helper Canvas to Blob Promise
+      canvasToBlob(canvas, type = "image/png", quality = 0.92) {
+        return new Promise((resolve) => {
+          canvas.toBlob((blob) => resolve(blob), type, quality);
+        });
+      },
+
+      // Format Ukuran File (Byte -> KB/MB)
+      formatBytes(bytes) {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      },
+
+      // Tanggal Hari Ini DD/MM/YYYY
+      getTodayFormatted() {
+        const d = new Date();
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      },
+
+      escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 1: PEMBUAT STIKER WHATSAPP (512x512 WebP < 100KB, Outline Putih)
+       ========================================================================== */
+    const Tool1_WASticker = {
+      state: {
+        img: null,
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        outline: true,
+        outlineWidth: 10,
+        text: "",
+        textColor: "#ffffff",
+        isDragging: false,
+        lastX: 0,
+        lastY: 0
+      },
+
+      mount(container) {
+        this.state = {
+          img: null, zoom: 1, offsetX: 0, offsetY: 0,
+          outline: true, outlineWidth: 10, text: "", textColor: "#ffffff",
+          isDragging: false, lastX: 0, lastY: 0
+        };
+
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t1Drop">
+                <div class="dropzone-icon">🖼️</div>
+                <div class="dropzone-title">Pilih atau Seret Gambar Stiker ke Sini</div>
+                <div class="dropzone-sub">Mendukung PNG transparan, JPG, atau WebP</div>
+                <input type="file" id="t1File" accept="image/*" class="hidden" />
+              </div>
+
+              <div id="t1CanvasWrap" class="hidden" style="margin-top:16px;">
+                <div class="canvas-stage">
+                  <canvas id="t1Canvas" width="512" height="512"></canvas>
+                </div>
+                <div class="info-box">
+                  💡 <strong>Tips:</strong> Geser gambar langsung di atas area preview untuk memposisikan crop. Output otomatis 512×512 px WebP &lt; 100 KB.
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Zoom Gambar <span class="val-badge" id="t1ZoomVal">100%</span></label>
+                <input type="range" id="t1Zoom" min="0.3" max="3" step="0.05" value="1" disabled />
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-row">
+                  <input type="checkbox" id="t1OutlineCheck" checked />
+                  <span>Tambahkan Outline Putih Khas Stiker WA</span>
+                </label>
+              </div>
+
+              <div class="form-group" id="t1OutlineGroup">
+                <label class="form-label">Ketebalan Outline <span class="val-badge" id="t1OutlineVal">10 px</span></label>
+                <input type="range" id="t1OutlineRange" min="2" max="24" value="10" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Teks Tambahan di Bawah Stiker (Opsional)</label>
+                <div class="row-flex">
+                  <input type="text" id="t1Text" placeholder="Contoh: Mantap Jiwa!" style="flex:1;" />
+                  <input type="color" id="t1TextColor" value="#ffffff" title="Warna Teks" />
+                </div>
+              </div>
+
+              <div class="row-flex" style="margin-top:20px;">
+                <button type="button" class="btn btn-secondary" id="t1ResetPos" disabled>Reset Posisi</button>
+                <button type="button" class="btn btn-primary" id="t1DownloadBtn" style="flex:1;" disabled>
+                  ⬇️ Unduh Stiker WebP (&lt;100KB)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const drop = document.getElementById("t1Drop");
+        const fileIn = document.getElementById("t1File");
+        const canvas = document.getElementById("t1Canvas");
+
+        AppCore.setupDropzone(drop, fileIn, async (files) => {
+          try {
+            const img = await AppCore.loadImageFromFile(files[0]);
+            this.state.img = img;
+            // Hitung zoom awal agar gambar pas di 512x512
+            const scale = Math.min(460 / img.width, 460 / img.height);
+            this.state.zoom = Number(scale.toFixed(2));
+            this.state.offsetX = 0;
+            this.state.offsetY = 0;
+
+            document.getElementById("t1Zoom").value = this.state.zoom;
+            document.getElementById("t1ZoomVal").textContent = Math.round(this.state.zoom * 100) + "%";
+            document.getElementById("t1Zoom").disabled = false;
+            document.getElementById("t1ResetPos").disabled = false;
+            document.getElementById("t1DownloadBtn").disabled = false;
+            document.getElementById("t1CanvasWrap").classList.remove("hidden");
+
+            this.render();
+            AppCore.toast("Gambar siap diedit menjadi stiker!", "success");
+          } catch (e) {}
+        });
+
+        // Kontrol UI
+        document.getElementById("t1Zoom").addEventListener("input", (e) => {
+          this.state.zoom = parseFloat(e.target.value);
+          document.getElementById("t1ZoomVal").textContent = Math.round(this.state.zoom * 100) + "%";
+          this.render();
+        });
+
+        document.getElementById("t1OutlineCheck").addEventListener("change", (e) => {
+          this.state.outline = e.target.checked;
+          document.getElementById("t1OutlineGroup").classList.toggle("hidden", !e.target.checked);
+          this.render();
+        });
+
+        document.getElementById("t1OutlineRange").addEventListener("input", (e) => {
+          this.state.outlineWidth = parseInt(e.target.value, 10);
+          document.getElementById("t1OutlineVal").textContent = this.state.outlineWidth + " px";
+          this.render();
+        });
+
+        document.getElementById("t1Text").addEventListener("input", (e) => {
+          this.state.text = e.target.value;
+          this.render();
+        });
+
+        document.getElementById("t1TextColor").addEventListener("input", (e) => {
+          this.state.textColor = e.target.value;
+          this.render();
+        });
+
+        document.getElementById("t1ResetPos").addEventListener("click", () => {
+          if (!this.state.img) return;
+          const scale = Math.min(460 / this.state.img.width, 460 / this.state.img.height);
+          this.state.zoom = Number(scale.toFixed(2));
+          this.state.offsetX = 0;
+          this.state.offsetY = 0;
+          document.getElementById("t1Zoom").value = this.state.zoom;
+          document.getElementById("t1ZoomVal").textContent = Math.round(this.state.zoom * 100) + "%";
+          this.render();
+        });
+
+        // Interaksi Drag Mouse & Touch pada Canvas
+        const getPos = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return {
+            x: (clientX - rect.left) * (512 / rect.width),
+            y: (clientY - rect.top) * (512 / rect.height)
+          };
+        };
+
+        const startDrag = (e) => {
+          if (!this.state.img) return;
+          this.state.isDragging = true;
+          const p = getPos(e);
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+        };
+
+        const moveDrag = (e) => {
+          if (!this.state.isDragging) return;
+          e.preventDefault();
+          const p = getPos(e);
+          this.state.offsetX += p.x - this.state.lastX;
+          this.state.offsetY += p.y - this.state.lastY;
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+          this.render();
+        };
+
+        const endDrag = () => { this.state.isDragging = false; };
+
+        canvas.addEventListener("mousedown", startDrag);
+        window.addEventListener("mousemove", moveDrag);
+        window.addEventListener("mouseup", endDrag);
+        canvas.addEventListener("touchstart", startDrag, { passive: false });
+        canvas.addEventListener("touchmove", moveDrag, { passive: false });
+        canvas.addEventListener("touchend", endDrag);
+
+        // Ekspor WebP di bawah 100 KB
+        document.getElementById("t1DownloadBtn").addEventListener("click", async () => {
+          if (!this.state.img) return;
+          AppCore.setLoading(true, "Mengoptimalkan stiker WebP < 100 KB...");
+          try {
+            let quality = 0.92;
+            let blob = await AppCore.canvasToBlob(canvas, "image/webp", quality);
+
+            // Turunkan kualitas secara bertahap hingga ukuran < 100 KB (102400 bytes)
+            while (blob && blob.size > 98 * 1024 && quality > 0.15) {
+              quality -= 0.08;
+              blob = await AppCore.canvasToBlob(canvas, "image/webp", quality);
+            }
+
+            AppCore.downloadBlob(blob, `stiker-wa-${Date.now()}.webp`);
+            AppCore.toast(`Stiker berhasil diunduh (${AppCore.formatBytes(blob.size)})!`, "success");
+          } catch (err) {
+            AppCore.toast("Gagal mengekspor stiker WebP.", "error");
+          } finally {
+            AppCore.setLoading(false);
+          }
+        });
+      },
+
+      render() {
+        const canvas = document.getElementById("t1Canvas");
+        if (!canvas || !this.state.img) return;
+        const ctx = canvas.getContext("2d");
+        const { img, zoom, offsetX, offsetY, outline, outlineWidth, text, textColor } = this.state;
+
+        ctx.clearRect(0, 0, 512, 512);
+
+        // Buat layer subjek gambar terlebih dahulu
+        const subjectCanvas = document.createElement("canvas");
+        subjectCanvas.width = 512;
+        subjectCanvas.height = 512;
+        const sCtx = subjectCanvas.getContext("2d");
+
+        const drawW = img.width * zoom;
+        const drawH = img.height * zoom;
+        const drawX = (512 - drawW) / 2 + offsetX;
+        const drawY = (512 - drawH) / 2 + offsetY;
+        sCtx.drawImage(img, drawX, drawY, drawW, drawH);
+
+        // Gambar outline putih dengan menggambar siluet putih di sekeliling subjek
+        if (outline && outlineWidth > 0) {
+          const silCanvas = document.createElement("canvas");
+          silCanvas.width = 512;
+          silCanvas.height = 512;
+          const silCtx = silCanvas.getContext("2d");
+          silCtx.drawImage(subjectCanvas, 0, 0);
+          silCtx.globalCompositeOperation = "source-in";
+          silCtx.fillStyle = "#ffffff";
+          silCtx.fillRect(0, 0, 512, 512);
+
+          const steps = 24;
+          for (let i = 0; i < steps; i++) {
+            const angle = (i * 2 * Math.PI) / steps;
+            const ox = Math.cos(angle) * outlineWidth;
+            const oy = Math.sin(angle) * outlineWidth;
+            ctx.drawImage(silCanvas, ox, oy);
+          }
+        }
+
+        // Gambar subjek utama di atas outline
+        ctx.drawImage(subjectCanvas, 0, 0);
+
+        // Gambar teks jika ada
+        if (text.trim()) {
+          ctx.save();
+          ctx.font = "900 44px Impact, Arial Black, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.lineJoin = "round";
+          ctx.lineWidth = 8;
+          ctx.strokeStyle = "#000000";
+          ctx.strokeText(text.trim(), 256, 492, 480);
+          ctx.fillStyle = textColor;
+          ctx.fillText(text.trim(), 256, 492, 480);
+          ctx.restore();
+        }
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 2: PEMBUAT STIKER MEME (512x512, Impact Atas & Bawah)
+       ========================================================================== */
+    const Tool2_MemeSticker = {
+      state: {
+        img: null,
+        topText: "KETIKA KODING",
+        bottomText: "LANGSUNG JALAN TANPA ERROR",
+        fontSize: 46,
+        textColor: "#ffffff"
+      },
+
+      mount(container) {
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t2Drop">
+                <div class="dropzone-icon">😂</div>
+                <div class="dropzone-title">Pilih atau Seret Foto untuk Stiker Meme</div>
+                <div class="dropzone-sub">Output otomatis persegi 512×512 px</div>
+                <input type="file" id="t2File" accept="image/*" class="hidden" />
+              </div>
+
+              <div class="canvas-stage" style="margin-top:16px;">
+                <canvas id="t2Canvas" width="512" height="512"></canvas>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Teks Atas</label>
+                <input type="text" id="t2TopText" value="${AppCore.escapeHtml(this.state.topText)}" placeholder="TEKS ATAS..." />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Teks Bawah</label>
+                <input type="text" id="t2BottomText" value="${AppCore.escapeHtml(this.state.bottomText)}" placeholder="TEKS BAWAH..." />
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Ukuran Teks <span class="val-badge" id="t2SizeVal">${this.state.fontSize}px</span></label>
+                  <input type="range" id="t2FontSize" min="20" max="80" value="${this.state.fontSize}" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Warna Teks</label>
+                  <input type="color" id="t2Color" value="${this.state.textColor}" />
+                </div>
+              </div>
+
+              <div class="grid-2" style="margin-top:20px;">
+                <button type="button" class="btn btn-primary" id="t2DownloadPng">⬇️ Unduh PNG</button>
+                <button type="button" class="btn btn-success" id="t2DownloadWebp">⬇️ Unduh WebP</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.render();
+
+        AppCore.setupDropzone(document.getElementById("t2Drop"), document.getElementById("t2File"), async (files) => {
+          try {
+            this.state.img = await AppCore.loadImageFromFile(files[0]);
+            this.render();
+            AppCore.toast("Gambar berhasil dimuat!", "success");
+          } catch (e) {}
+        });
+
+        document.getElementById("t2TopText").addEventListener("input", (e) => {
+          this.state.topText = e.target.value;
+          this.render();
+        });
+        document.getElementById("t2BottomText").addEventListener("input", (e) => {
+          this.state.bottomText = e.target.value;
+          this.render();
+        });
+        document.getElementById("t2FontSize").addEventListener("input", (e) => {
+          this.state.fontSize = parseInt(e.target.value, 10);
+          document.getElementById("t2SizeVal").textContent = this.state.fontSize + "px";
+          this.render();
+        });
+        document.getElementById("t2Color").addEventListener("input", (e) => {
+          this.state.textColor = e.target.value;
+          this.render();
+        });
+
+        document.getElementById("t2DownloadPng").addEventListener("click", async () => {
+          const canvas = document.getElementById("t2Canvas");
+          const blob = await AppCore.canvasToBlob(canvas, "image/png");
+          AppCore.downloadBlob(blob, `stiker-meme-${Date.now()}.png`);
+          AppCore.toast("Stiker Meme PNG diunduh!", "success");
+        });
+
+        document.getElementById("t2DownloadWebp").addEventListener("click", async () => {
+          const canvas = document.getElementById("t2Canvas");
+          const blob = await AppCore.canvasToBlob(canvas, "image/webp", 0.9);
+          AppCore.downloadBlob(blob, `stiker-meme-${Date.now()}.webp`);
+          AppCore.toast("Stiker Meme WebP diunduh!", "success");
+        });
+      },
+
+      render() {
+        const canvas = document.getElementById("t2Canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 512, 512);
+
+        if (this.state.img) {
+          // Center-crop cover 512x512
+          const img = this.state.img;
+          const scale = Math.max(512 / img.width, 512 / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          ctx.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h);
+        } else {
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(0, 0, 512, 512);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "600 18px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Upload gambar untuk memulai", 256, 256);
+        }
+
+        // Gambar teks Impact dengan outline hitam
+        ctx.font = `900 ${this.state.fontSize}px Impact, "Arial Black", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = Math.max(4, Math.round(this.state.fontSize / 6));
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = this.state.textColor;
+
+        if (this.state.topText.trim()) {
+          ctx.textBaseline = "top";
+          this.drawWrappedMemeText(ctx, this.state.topText.toUpperCase(), 256, 18, 480, this.state.fontSize * 1.1, false);
+        }
+        if (this.state.bottomText.trim()) {
+          ctx.textBaseline = "bottom";
+          this.drawWrappedMemeText(ctx, this.state.bottomText.toUpperCase(), 256, 494, 480, this.state.fontSize * 1.1, true);
+        }
+      },
+
+      drawWrappedMemeText(ctx, text, x, y, maxWidth, lineHeight, fromBottom) {
+        const words = text.split(" ");
+        const lines = [];
+        let line = "";
+
+        for (let i = 0; i < words.length; i++) {
+          const test = line + words[i] + " ";
+          if (ctx.measureText(test).width > maxWidth && i > 0) {
+            lines.push(line.trim());
+            line = words[i] + " ";
+          } else {
+            line = test;
+          }
+        }
+        lines.push(line.trim());
+
+        if (fromBottom) {
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const lineY = y - (lines.length - 1 - i) * lineHeight;
+            ctx.strokeText(lines[i], x, lineY, maxWidth);
+            ctx.fillText(lines[i], x, lineY, maxWidth);
+          }
+        } else {
+          lines.forEach((l, idx) => {
+            const lineY = y + idx * lineHeight;
+            ctx.strokeText(l, x, lineY, maxWidth);
+            ctx.fillText(l, x, lineY, maxWidth);
+          });
+        }
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 3: MEME GENERATOR (Ukuran Asli + Multi Kotak Teks Drag & Drop)
+       ========================================================================== */
+    const Tool3_MemeGenerator = {
+      state: {
+        img: null,
+        layers: [],
+        selectedId: null,
+        draggingId: null,
+        dragOffsetX: 0,
+        dragOffsetY: 0
+      },
+
+      mount(container) {
+        this.state = {
+          img: null,
+          layers: [
+            { id: 1, text: "TEKS PERTAMA", x: 300, y: 70, size: 42, color: "#ffffff" },
+            { id: 2, text: "GESER AKU DI CANVAS", x: 300, y: 340, size: 42, color: "#facc15" }
+          ],
+          selectedId: 1,
+          draggingId: null,
+          dragOffsetX: 0,
+          dragOffsetY: 0
+        };
+
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t3Drop">
+                <div class="dropzone-icon">🎨</div>
+                <div class="dropzone-title">Upload Gambar Meme (Ukuran Bebas)</div>
+                <div class="dropzone-sub">Resolusi mengikuti gambar asli. Klik &amp; geser teks di canvas!</div>
+                <input type="file" id="t3File" accept="image/*" class="hidden" />
+              </div>
+
+              <div class="canvas-stage" style="margin-top:16px;">
+                <canvas id="t3Canvas" width="600" height="400"></canvas>
+              </div>
+              <div class="info-box">
+                🖱️ <strong>Interaktif:</strong> Sentuh atau klik kotak teks langsung pada gambar di atas, lalu seret ke posisi yang diinginkan.
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="row-flex" style="justify-content:space-between; margin-bottom:12px;">
+                <strong>Daftar Kotak Teks</strong>
+                <button type="button" class="btn btn-primary btn-sm" id="t3AddLayerBtn">+ Tambah Kotak Teks</button>
+              </div>
+
+              <div id="t3LayersList"></div>
+
+              <div class="grid-2" style="margin-top:20px;">
+                <button type="button" class="btn btn-primary" id="t3ExportPng">⬇️ Unduh PNG</button>
+                <button type="button" class="btn btn-success" id="t3ExportJpg">⬇️ Unduh JPG</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.renderLayersUI();
+        this.renderCanvas();
+
+        const canvas = document.getElementById("t3Canvas");
+
+        AppCore.setupDropzone(document.getElementById("t3Drop"), document.getElementById("t3File"), async (files) => {
+          try {
+            const img = await AppCore.loadImageFromFile(files[0]);
+            this.state.img = img;
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Sesuaikan posisi & ukuran font default agar proporsional dengan gambar asli
+            const baseSize = Math.max(24, Math.round(img.width / 14));
+            this.state.layers.forEach((l, idx) => {
+              l.x = Math.round(img.width / 2);
+              l.y = idx === 0 ? Math.round(img.height * 0.14) : Math.round(img.height * 0.88);
+              l.size = baseSize;
+            });
+
+            this.renderLayersUI();
+            this.renderCanvas();
+            AppCore.toast(`Gambar dimuat (${img.width}×${img.height} px)`, "success");
+          } catch (e) {}
+        });
+
+        document.getElementById("t3AddLayerBtn").addEventListener("click", () => {
+          const newId = Date.now();
+          const baseSize = this.state.img ? Math.max(24, Math.round(this.state.img.width / 14)) : 40;
+          this.state.layers.push({
+            id: newId,
+            text: "TEKS BARU",
+            x: Math.round(canvas.width / 2),
+            y: Math.round(canvas.height / 2),
+            size: baseSize,
+            color: "#ffffff"
+          });
+          this.state.selectedId = newId;
+          this.renderLayersUI();
+          this.renderCanvas();
+        });
+
+        // Dragging Teks di Canvas
+        const getCanvasCoords = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
+          };
+        };
+
+        const onPointerDown = (e) => {
+          const pos = getCanvasCoords(e);
+          const ctx = canvas.getContext("2d");
+
+          // Cek dari layer teratas
+          for (let i = this.state.layers.length - 1; i >= 0; i--) {
+            const l = this.state.layers[i];
+            ctx.font = `900 ${l.size}px Impact, "Arial Black", sans-serif`;
+            const w = Math.max(100, ctx.measureText(l.text || "TEKS").width);
+            const h = l.size * 1.2;
+
+            if (
+              pos.x >= l.x - w / 2 - 20 &&
+              pos.x <= l.x + w / 2 + 20 &&
+              pos.y >= l.y - h / 2 - 20 &&
+              pos.y <= l.y + h / 2 + 20
+            ) {
+              this.state.selectedId = l.id;
+              this.state.draggingId = l.id;
+              this.state.dragOffsetX = pos.x - l.x;
+              this.state.dragOffsetY = pos.y - l.y;
+              this.renderLayersUI();
+              this.renderCanvas();
+              break;
+            }
+          }
+        };
+
+        const onPointerMove = (e) => {
+          if (!this.state.draggingId) return;
+          e.preventDefault();
+          const pos = getCanvasCoords(e);
+          const layer = this.state.layers.find((l) => l.id === this.state.draggingId);
+          if (layer) {
+            layer.x = pos.x - this.state.dragOffsetX;
+            layer.y = pos.y - this.state.dragOffsetY;
+            this.renderCanvas();
+          }
+        };
+
+        const onPointerUp = () => {
+          this.state.draggingId = null;
+        };
+
+        canvas.addEventListener("mousedown", onPointerDown);
+        window.addEventListener("mousemove", onPointerMove);
+        window.addEventListener("mouseup", onPointerUp);
+        canvas.addEventListener("touchstart", onPointerDown, { passive: false });
+        canvas.addEventListener("touchmove", onPointerMove, { passive: false });
+        canvas.addEventListener("touchend", onPointerUp);
+
+        document.getElementById("t3ExportPng").addEventListener("click", async () => {
+          this.renderCanvas(true);
+          const blob = await AppCore.canvasToBlob(canvas, "image/png");
+          this.renderCanvas(false);
+          AppCore.downloadBlob(blob, `meme-${Date.now()}.png`);
+          AppCore.toast("Meme PNG berhasil diunduh!", "success");
+        });
+
+        document.getElementById("t3ExportJpg").addEventListener("click", async () => {
+          this.renderCanvas(true);
+          const blob = await AppCore.canvasToBlob(canvas, "image/jpeg", 0.92);
+          this.renderCanvas(false);
+          AppCore.downloadBlob(blob, `meme-${Date.now()}.jpg`);
+          AppCore.toast("Meme JPG berhasil diunduh!", "success");
+        });
+      },
+
+      renderLayersUI() {
+        const wrap = document.getElementById("t3LayersList");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+
+        this.state.layers.forEach((layer, index) => {
+          const card = document.createElement("div");
+          card.className = `meme-layer-card ${layer.id === this.state.selectedId ? "selected" : ""}`;
+          card.innerHTML = `
+            <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
+              <span style="font-size:0.85rem; font-weight:700;">Kotak Teks #${index + 1}</span>
+              ${this.state.layers.length > 1 ? `<button type="button" class="btn btn-danger btn-sm" data-del="${layer.id}">Hapus</button>` : ""}
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+              <input type="text" value="${AppCore.escapeHtml(layer.text)}" data-text="${layer.id}" placeholder="Masukkan teks..." />
+            </div>
+            <div class="row-flex">
+              <div style="flex:1;">
+                <label style="font-size:0.78rem; color:var(--text-secondary);">Ukuran (${layer.size}px)</label>
+                <input type="range" min="16" max="150" value="${layer.size}" data-size="${layer.id}" />
+              </div>
+              <input type="color" value="${layer.color}" data-color="${layer.id}" title="Warna Teks" />
+            </div>
+          `;
+
+          card.addEventListener("click", () => {
+            this.state.selectedId = layer.id;
+            this.renderCanvas();
+          });
+
+          card.querySelector(`[data-text="${layer.id}"]`).addEventListener("input", (e) => {
+            layer.text = e.target.value;
+            this.renderCanvas();
+          });
+
+          card.querySelector(`[data-size="${layer.id}"]`).addEventListener("input", (e) => {
+            layer.size = parseInt(e.target.value, 10);
+            this.renderLayersUI();
+            this.renderCanvas();
+          });
+
+          card.querySelector(`[data-color="${layer.id}"]`).addEventListener("input", (e) => {
+            layer.color = e.target.value;
+            this.renderCanvas();
+          });
+
+          const delBtn = card.querySelector(`[data-del="${layer.id}"]`);
+          if (delBtn) {
+            delBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.state.layers = this.state.layers.filter((l) => l.id !== layer.id);
+              this.renderLayersUI();
+              this.renderCanvas();
+            });
+          }
+
+          wrap.appendChild(card);
+        });
+      },
+
+      renderCanvas(isExport = false) {
+        const canvas = document.getElementById("t3Canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (this.state.img) {
+          ctx.drawImage(this.state.img, 0, 0);
+        } else {
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "600 18px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Upload gambar atau coba geser teks di sini", canvas.width / 2, canvas.height / 2);
+        }
+
+        this.state.layers.forEach((l) => {
+          ctx.save();
+          ctx.font = `900 ${l.size}px Impact, "Arial Black", sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.lineJoin = "round";
+          ctx.lineWidth = Math.max(4, Math.round(l.size / 6));
+          ctx.strokeStyle = "#000000";
+          ctx.fillStyle = l.color;
+
+          const displayTxt = l.text.toUpperCase();
+          ctx.strokeText(displayTxt, l.x, l.y);
+          ctx.fillText(displayTxt, l.x, l.y);
+
+            // Bingkai indikator seleksi saat editing (bukan saat ekspor)
+          if (!isExport && l.id === this.state.selectedId) {
+            const w = Math.max(80, ctx.measureText(displayTxt).width) + 24;
+            const h = l.size * 1.25;
+            ctx.strokeStyle = "#00f2fe";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(l.x - w / 2, l.y - h / 2, w, h);
+          }
+          ctx.restore();
+        });
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 4: HAPUS BACKGROUND WARNA POLOS (Chroma Key / Jarak RGB)
+       ========================================================================== */
+    const Tool4_RemoveBg = {
+      state: {
+        img: null,
+        targetColor: { r: 255, g: 255, b: 255 },
+        tolerance: 35,
+        feather: 10
+      },
+
+      mount(container) {
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t4Drop">
+                <div class="dropzone-icon">🪄</div>
+                <div class="dropzone-title">Upload Gambar dengan Background Polos</div>
+                <div class="dropzone-sub">Setelah gambar muncul, klik warna background yang ingin dihapus</div>
+                <input type="file" id="t4File" accept="image/*" class="hidden" />
+              </div>
+
+              <div class="canvas-stage" style="margin-top:16px;">
+                <canvas id="t4Canvas" width="500" height="320" style="cursor:crosshair;"></canvas>
+              </div>
+              <div class="info-box">
+                🎯 <strong>Cara Pakai:</strong> Klik langsung pada area warna background di atas gambar untuk mengambil sampel warna (Eyedropper).
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Warna Target yang Dihapus</label>
+                <div class="row-flex">
+                  <input type="color" id="t4ColorPicker" value="#ffffff" />
+                  <span id="t4ColorHex" style="font-family:monospace; font-weight:700;">RGB(255, 255, 255)</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Toleransi Warna <span class="val-badge" id="t4TolVal">35</span></label>
+                <input type="range" id="t4Tolerance" min="1" max="150" value="35" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Kehalusan Tepi (Feather) <span class="val-badge" id="t4FeatherVal">10</span></label>
+                <input type="range" id="t4Feather" min="0" max="50" value="10" />
+              </div>
+
+              <button type="button" class="btn btn-primary btn-full" id="t4DownloadBtn" style="margin-top:20px;" disabled>
+                ⬇️ Unduh PNG Transparan
+              </button>
+            </div>
+          </div>
+        `;
+
+        const canvas = document.getElementById("t4Canvas");
+
+        AppCore.setupDropzone(document.getElementById("t4Drop"), document.getElementById("t4File"), async (files) => {
+          try {
+            const img = await AppCore.loadImageFromFile(files[0]);
+            this.state.img = img;
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Ambil sampel warna pojok kiri atas secara otomatis sebagai tebakan awal
+            const tmp = document.createElement("canvas");
+            tmp.width = 1; tmp.height = 1;
+            const tCtx = tmp.getContext("2d");
+            tCtx.drawImage(img, 0, 0);
+            const px = tCtx.getImageData(0, 0, 1, 1).data;
+            this.setTargetRgb(px[0], px[1], px[2]);
+
+            document.getElementById("t4DownloadBtn").disabled = false;
+            this.processChromaKey();
+            AppCore.toast("Klik warna background pada gambar untuk menyesuaikan!", "success");
+          } catch (e) {}
+        });
+
+        // Eyedropper klik pada canvas
+        canvas.addEventListener("click", (e) => {
+          if (!this.state.img) return;
+          const rect = canvas.getBoundingClientRect();
+          const x = Math.floor((e.clientX - rect.left) * (this.state.img.width / rect.width));
+          const y = Math.floor((e.clientY - rect.top) * (this.state.img.height / rect.height));
+
+          const off = document.createElement("canvas");
+          off.width = this.state.img.width;
+          off.height = this.state.img.height;
+          const oCtx = off.getContext("2d");
+          oCtx.drawImage(this.state.img, 0, 0);
+          const px = oCtx.getImageData(x, y, 1, 1).data;
+
+          this.setTargetRgb(px[0], px[1], px[2]);
+          this.processChromaKey();
+          AppCore.toast(`Sampel warna diambil: RGB(${px[0]}, ${px[1]}, ${px[2]})`, "info");
+        });
+
+        document.getElementById("t4ColorPicker").addEventListener("input", (e) => {
+          const hex = e.target.value;
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          this.setTargetRgb(r, g, b);
+          this.processChromaKey();
+        });
+
+        document.getElementById("t4Tolerance").addEventListener("input", (e) => {
+          this.state.tolerance = parseInt(e.target.value, 10);
+          document.getElementById("t4TolVal").textContent = this.state.tolerance;
+          this.processChromaKey();
+        });
+
+        document.getElementById("t4Feather").addEventListener("input", (e) => {
+          this.state.feather = parseInt(e.target.value, 10);
+          document.getElementById("t4FeatherVal").textContent = this.state.feather;
+          this.processChromaKey();
+        });
+
+        document.getElementById("t4DownloadBtn").addEventListener("click", async () => {
+          const blob = await AppCore.canvasToBlob(canvas, "image/png");
+          AppCore.downloadBlob(blob, `tanpa-background-${Date.now()}.png`);
+          AppCore.toast("Gambar PNG transparan berhasil diunduh!", "success");
+        });
+      },
+
+      setTargetRgb(r, g, b) {
+        this.state.targetColor = { r, g, b };
+        const hex = "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+        document.getElementById("t4ColorPicker").value = hex;
+        document.getElementById("t4ColorHex").textContent = `RGB(${r}, ${g}, ${b})`;
+      },
+
+      processChromaKey() {
+        const canvas = document.getElementById("t4Canvas");
+        if (!canvas || !this.state.img) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(this.state.img, 0, 0);
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        const { r: tr, g: tg, b: tb } = this.state.targetColor;
+        const tol = this.state.tolerance * 2.55; // Skala jarak Euclidean RGB
+        const feather = this.state.feather * 2.55;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const dr = data[i] - tr;
+          const dg = data[i + 1] - tg;
+          const db = data[i + 2] - tb;
+          const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+
+          if (dist < tol) {
+            data[i + 3] = 0;
+          } else if (feather > 0 && dist < tol + feather) {
+            const ratio = (dist - tol) / feather;
+            data[i + 3] = Math.round(data[i + 3] * ratio);
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 5: KOMPRES GAMBAR (Batch + Perbandingan Ukuran + Unduh ZIP)
+       ========================================================================== */
+    const Tool5_Compress = {
+      items: [],
+      quality: 0.75,
+
+      mount(container) {
+        this.items = [];
+        this.quality = 0.75;
+
+        container.innerHTML = `
+          <div class="panel">
+            <div class="dropzone" id="t5Drop">
+              <div class="dropzone-icon">🗜️</div>
+              <div class="dropzone-title">Pilih atau Seret Banyak Gambar Sekaligus</div>
+              <div class="dropzone-sub">Mendukung kompresi massal (batch) JPG, PNG, WebP</div>
+              <input type="file" id="t5File" accept="image/*" multiple class="hidden" />
+            </div>
+
+            <div class="row-flex" style="margin-top:20px; justify-content:space-between;">
+              <div style="flex:1; min-width:240px;">
+                <label class="form-label">Kualitas Kompresi <span class="val-badge" id="t5QualVal">75%</span></label>
+                <input type="range" id="t5Quality" min="10" max="100" value="75" />
+              </div>
+              <div class="row-flex">
+                <button type="button" class="btn btn-secondary" id="t5ClearBtn" disabled>Hapus Semua</button>
+                <button type="button" class="btn btn-primary" id="t5ZipBtn" disabled>📦 Unduh Semua (ZIP)</button>
+              </div>
+            </div>
+
+            <div class="file-list" id="t5FileList"></div>
+          </div>
+        `;
+
+        AppCore.setupDropzone(document.getElementById("t5Drop"), document.getElementById("t5File"), async (files) => {
+          AppCore.setLoading(true, "Memproses & mengompres gambar...");
+          try {
+            for (const file of files) {
+              if (!AppCore.validateImageFile(file)) continue;
+              const img = await AppCore.loadImageFromFile(file);
+              const compressed = await this.compressSingle(img, file, this.quality);
+              this.items.push({
+                id: Date.now() + Math.random(),
+                file,
+                img,
+                originalSize: file.size,
+                compressedBlob: compressed.blob,
+                ext: compressed.ext,
+                thumbUrl: URL.createObjectURL(compressed.blob)
+              });
+            }
+            this.renderList();
+            if (this.items.length > 0) {
+              AppCore.toast(`${this.items.length} gambar siap diunduh!`, "success");
+            }
+          } finally {
+            AppCore.setLoading(false);
+          }
+        });
+
+        let debounceTimer = null;
+        document.getElementById("t5Quality").addEventListener("input", (e) => {
+          const val = parseInt(e.target.value, 10);
+          this.quality = val / 100;
+          document.getElementById("t5QualVal").textContent = val + "%";
+
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(async () => {
+            if (this.items.length === 0) return;
+            for (const item of this.items) {
+              const res = await this.compressSingle(item.img, item.file, this.quality);
+              URL.revokeObjectURL(item.thumbUrl);
+              item.compressedBlob = res.blob;
+              item.ext = res.ext;
+              item.thumbUrl = URL.createObjectURL(res.blob);
+            }
+            this.renderList();
+          }, 200);
+        });
+
+        document.getElementById("t5ClearBtn").addEventListener("click", () => {
+          this.items.forEach((it) => URL.revokeObjectURL(it.thumbUrl));
+          this.items = [];
+          this.renderList();
+        });
+
+        document.getElementById("t5ZipBtn").addEventListener("click", async () => {
+          if (this.items.length === 0) return;
+          if (typeof JSZip === "undefined") {
+            AppCore.toast("Library JSZip gagal dimuat. Periksa koneksi internet.", "error");
+            return;
+          }
+          AppCore.setLoading(true, "Membuat arsip ZIP...");
+          try {
+            const zip = new JSZip();
+            this.items.forEach((item, idx) => {
+              const baseName = item.file.name.replace(/\.[^/.]+$/, "");
+              zip.file(`${baseName}-kompres-${idx + 1}.${item.ext}`, item.compressedBlob);
+            });
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            AppCore.downloadBlob(zipBlob, `gambar-terkompres-${Date.now()}.zip`);
+            AppCore.toast("File ZIP berhasil diunduh!", "success");
+          } catch (err) {
+            AppCore.toast("Gagal membuat file ZIP.", "error");
+          } finally {
+            AppCore.setLoading(false);
+          }
+        });
+      },
+
+      async compressSingle(img, file, quality) {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        // Gunakan WebP jika PNG agar benar-benar terkompres, atau JPEG untuk foto
+        const isPng = file.type === "image/png";
+        const mime = isPng ? "image/webp" : "image/jpeg";
+        const ext = isPng ? "webp" : "jpg";
+        const blob = await AppCore.canvasToBlob(canvas, mime, quality);
+        return { blob, ext };
+      },
+
+      renderList() {
+        const list = document.getElementById("t5FileList");
+        const hasItems = this.items.length > 0;
+        document.getElementById("t5ClearBtn").disabled = !hasItems;
+        document.getElementById("t5ZipBtn").disabled = !hasItems;
+
+        list.innerHTML = "";
+        this.items.forEach((item) => {
+          const savedPct = Math.round(((item.originalSize - item.compressedBlob.size) / item.originalSize) * 100);
+          const badgeText = savedPct > 0 ? `Hemat ${savedPct}%` : `+${Math.abs(savedPct)}%`;
+
+          const row = document.createElement("div");
+          row.className = "file-item";
+          row.innerHTML = `
+            <div class="file-item-info">
+              <img src="${item.thumbUrl}" class="file-thumb" alt="Preview" />
+              <div class="file-meta">
+                <div class="file-name">${AppCore.escapeHtml(item.file.name)}</div>
+                <div class="file-stats">
+                  ${AppCore.formatBytes(item.originalSize)} → <strong>${AppCore.formatBytes(item.compressedBlob.size)}</strong>
+                  <span class="badge-save">${badgeText}</span>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm">⬇️ Unduh</button>
+          `;
+
+          row.querySelector("button").addEventListener("click", () => {
+            const baseName = item.file.name.replace(/\.[^/.]+$/, "");
+            AppCore.downloadBlob(item.compressedBlob, `${baseName}-kompres.${item.ext}`);
+          });
+
+          list.appendChild(row);
+        });
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 6: RESIZE DAN KONVERSI GAMBAR (Kunci Rasio + JPG/PNG/WebP)
+       ========================================================================== */
+    const Tool6_ResizeConvert = {
+      state: {
+        img: null,
+        fileName: "gambar",
+        aspectRatio: 1,
+        lockRatio: true
+      },
+
+      mount(container) {
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t6Drop">
+                <div class="dropzone-icon">📐</div>
+                <div class="dropzone-title">Pilih atau Seret Gambar untuk Diubah Ukuran / Format</div>
+                <div class="dropzone-sub">Mendukung konversi ke JPG, PNG, dan WebP</div>
+                <input type="file" id="t6File" accept="image/*" class="hidden" />
+              </div>
+
+              <div id="t6PreviewBox" class="hidden" style="margin-top:16px;">
+                <div class="canvas-stage">
+                  <canvas id="t6Canvas"></canvas>
+                </div>
+                <div class="info-box" id="t6DimInfo">Dimensi Asli: -</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Lebar (px)</label>
+                  <input type="number" id="t6Width" min="1" max="10000" disabled />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tinggi (px)</label>
+                  <input type="number" id="t6Height" min="1" max="10000" disabled />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-row">
+                  <input type="checkbox" id="t6LockRatio" checked />
+                  <span>🔒 Kunci Rasio Aspek (Proporsional)</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Preset Skala Cepat</label>
+                <div class="row-flex">
+                  <button type="button" class="btn btn-secondary btn-sm t6-preset" data-scale="0.25" disabled>25%</button>
+                  <button type="button" class="btn btn-secondary btn-sm t6-preset" data-scale="0.5" disabled>50%</button>
+                  <button type="button" class="btn btn-secondary btn-sm t6-preset" data-scale="0.75" disabled>75%</button>
+                  <button type="button" class="btn btn-secondary btn-sm t6-preset" data-scale="1" disabled>100% Asli</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Format Output</label>
+                <select id="t6Format" disabled>
+                  <option value="image/jpeg">JPG / JPEG (Cocok untuk Foto)</option>
+                  <option value="image/png">PNG (Mendukung Transparansi)</option>
+                  <option value="image/webp">WebP (Modern &amp; Ukuran Kecil)</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="t6QualityGroup">
+                <label class="form-label">Kualitas Output <span class="val-badge" id="t6QualVal">90%</span></label>
+                <input type="range" id="t6Quality" min="10" max="100" value="90" disabled />
+              </div>
+
+              <button type="button" class="btn btn-primary btn-full" id="t6DownloadBtn" style="margin-top:20px;" disabled>
+                ⬇️ Proses &amp; Unduh Gambar
+              </button>
+            </div>
+          </div>
+        `;
+
+        const wInput = document.getElementById("t6Width");
+        const hInput = document.getElementById("t6Height");
+
+        AppCore.setupDropzone(document.getElementById("t6Drop"), document.getElementById("t6File"), async (files) => {
+          try {
+            const file = files[0];
+            const img = await AppCore.loadImageFromFile(file);
+            this.state.img = img;
+            this.state.fileName = file.name.replace(/\.[^/.]+$/, "");
+            this.state.aspectRatio = img.width / img.height;
+
+            wInput.value = img.width;
+            hInput.value = img.height;
+            wInput.disabled = false;
+            hInput.disabled = false;
+            document.getElementById("t6Format").disabled = false;
+            document.getElementById("t6Quality").disabled = false;
+            document.getElementById("t6DownloadBtn").disabled = false;
+            document.querySelectorAll(".t6-preset").forEach((b) => (b.disabled = false));
+
+            document.getElementById("t6PreviewBox").classList.remove("hidden");
+            document.getElementById("t6DimInfo").textContent = `Dimensi Asli: ${img.width} × ${img.height} px (${AppCore.formatBytes(file.size)})`;
+
+            const canvas = document.getElementById("t6Canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.getContext("2d").drawImage(img, 0, 0);
+
+            AppCore.toast("Gambar siap diubah ukuran & formatnya!", "success");
+          } catch (e) {}
+        });
+
+        wInput.addEventListener("input", () => {
+          if (!this.state.img) return;
+          const w = parseInt(wInput.value, 10);
+          if (this.state.lockRatio && w > 0) {
+            hInput.value = Math.round(w / this.state.aspectRatio);
+          }
+        });
+
+        hInput.addEventListener("input", () => {
+          if (!this.state.img) return;
+          const h = parseInt(hInput.value, 10);
+          if (this.state.lockRatio && h > 0) {
+            wInput.value = Math.round(h * this.state.aspectRatio);
+          }
+        });
+
+        document.getElementById("t6LockRatio").addEventListener("change", (e) => {
+          this.state.lockRatio = e.target.checked;
+        });
+
+        document.querySelectorAll(".t6-preset").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (!this.state.img) return;
+            const scale = parseFloat(btn.dataset.scale);
+            wInput.value = Math.max(1, Math.round(this.state.img.width * scale));
+            hInput.value = Math.max(1, Math.round(this.state.img.height * scale));
+          });
+        });
+
+        document.getElementById("t6Format").addEventListener("change", (e) => {
+          document.getElementById("t6QualityGroup").classList.toggle("hidden", e.target.value === "image/png");
+        });
+
+        document.getElementById("t6Quality").addEventListener("input", (e) => {
+          document.getElementById("t6QualVal").textContent = e.target.value + "%";
+        });
+
+        document.getElementById("t6DownloadBtn").addEventListener("click", async () => {
+          if (!this.state.img) return;
+          const targetW = Math.max(1, parseInt(wInput.value, 10) || this.state.img.width);
+          const targetH = Math.max(1, parseInt(hInput.value, 10) || this.state.img.height);
+          const format = document.getElementById("t6Format").value;
+          const quality = parseInt(document.getElementById("t6Quality").value, 10) / 100;
+
+          const outCanvas = document.createElement("canvas");
+          outCanvas.width = targetW;
+          outCanvas.height = targetH;
+          const ctx = outCanvas.getContext("2d");
+
+          if (format === "image/jpeg") {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, targetW, targetH);
+          }
+          ctx.drawImage(this.state.img, 0, 0, targetW, targetH);
+
+          const extMap = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+          const blob = await AppCore.canvasToBlob(outCanvas, format, quality);
+          AppCore.downloadBlob(blob, `${this.state.fileName}-${targetW}x${targetH}.${extMap[format]}`);
+          AppCore.toast(`Berhasil diunduh (${targetW}×${targetH} px, ${AppCore.formatBytes(blob.size)})!`, "success");
+        });
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 7: PAS FOTO MAKER (2x3, 3x4, 4x6, BG Merah/Biru/Putih, Lembar 4R)
+       ========================================================================== */
+    const Tool7_PasFoto = {
+      state: {
+        img: null,
+        sizeKey: "3x4", // 2x3, 3x4, 4x6
+        bgColor: "#db1514", // Merah standar Indonesia
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        isDragging: false,
+        lastX: 0,
+        lastY: 0
+      },
+
+      // Ukuran dalam piksel pada 300 DPI
+      specs: {
+        "2x3": { label: "2 × 3 cm", w: 255, h: 330 },   // ~21.6 x 27.9 mm
+        "3x4": { label: "3 × 4 cm", w: 330, h: 450 },   // ~27.9 x 38.1 mm
+        "4x6": { label: "4 × 6 cm", w: 450, h: 660 }    // ~38.1 x 55.9 mm
+      },
+
+      mount(container) {
+        this.state = {
+          img: null, sizeKey: "3x4", bgColor: "#db1514",
+          zoom: 1, offsetX: 0, offsetY: 0, isDragging: false, lastX: 0, lastY: 0
+        };
+
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t7Drop">
+                <div class="dropzone-icon">🪪</div>
+                <div class="dropzone-title">Upload Foto Wajah untuk Pas Foto</div>
+                <div class="dropzone-sub">Gunakan foto berlatar transparan (hasil Tool #4) untuk mengganti warna background secara otomatis</div>
+                <input type="file" id="t7File" accept="image/*" class="hidden" />
+              </div>
+
+              <div class="canvas-stage" style="margin-top:16px;">
+                <canvas id="t7Canvas" width="330" height="450"></canvas>
+              </div>
+              <div class="info-box">
+                🖱️ <strong>Atur Posisi:</strong> Geser foto langsung pada bingkai pas foto di atas dan gunakan slider zoom agar posisi kepala proporsional.
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">1. Pilih Ukuran Standar</label>
+                <div class="swatch-group">
+                  <button type="button" class="swatch-btn t7-size" data-size="2x3">2 × 3 cm</button>
+                  <button type="button" class="swatch-btn t7-size active" data-size="3x4">3 × 4 cm</button>
+                  <button type="button" class="swatch-btn t7-size" data-size="4x6">4 × 6 cm</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">2. Pilih Warna Background</label>
+                <div class="swatch-group">
+                  <button type="button" class="swatch-btn t7-bg active" data-bg="#db1514">
+                    <span class="swatch-dot" style="background:#db1514;"></span> Merah
+                  </button>
+                  <button type="button" class="swatch-btn t7-bg" data-bg="#0055b8">
+                    <span class="swatch-dot" style="background:#0055b8;"></span> Biru
+                  </button>
+                  <button type="button" class="swatch-btn t7-bg" data-bg="#ffffff">
+                    <span class="swatch-dot" style="background:#ffffff;"></span> Putih
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">3. Zoom Foto <span class="val-badge" id="t7ZoomVal">100%</span></label>
+                <input type="range" id="t7Zoom" min="0.2" max="3" step="0.02" value="1" disabled />
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                <button type="button" class="btn btn-primary btn-full" id="t7DownloadSingle" disabled>
+                  ⬇️ Unduh Pas Foto Satuan (300 DPI)
+                </button>
+                <button type="button" class="btn btn-success btn-full" id="t7Download4R" disabled>
+                  🖨️ Unduh Lembar Cetak 4R (Susun Otomatis)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.renderSingle();
+        const canvas = document.getElementById("t7Canvas");
+
+        AppCore.setupDropzone(document.getElementById("t7Drop"), document.getElementById("t7File"), async (files) => {
+          try {
+            const img = await AppCore.loadImageFromFile(files[0]);
+            this.state.img = img;
+            this.resetFit();
+            document.getElementById("t7Zoom").disabled = false;
+            document.getElementById("t7DownloadSingle").disabled = false;
+            document.getElementById("t7Download4R").disabled = false;
+            this.renderSingle();
+            AppCore.toast("Foto dimuat! Sesuaikan posisi & ukuran.", "success");
+          } catch (e) {}
+        });
+
+        document.querySelectorAll(".t7-size").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".t7-size").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            this.state.sizeKey = btn.dataset.size;
+            const spec = this.specs[this.state.sizeKey];
+            canvas.width = spec.w;
+            canvas.height = spec.h;
+            if (this.state.img) this.resetFit();
+            this.renderSingle();
+          });
+        });
+
+        document.querySelectorAll(".t7-bg").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".t7-bg").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            this.state.bgColor = btn.dataset.bg;
+            this.renderSingle();
+          });
+        });
+
+        document.getElementById("t7Zoom").addEventListener("input", (e) => {
+          this.state.zoom = parseFloat(e.target.value);
+          document.getElementById("t7ZoomVal").textContent = Math.round(this.state.zoom * 100) + "%";
+          this.renderSingle();
+        });
+
+        // Drag foto pada canvas pas foto
+        const getPos = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
+          };
+        };
+
+        canvas.addEventListener("mousedown", (e) => {
+          if (!this.state.img) return;
+          this.state.isDragging = true;
+          const p = getPos(e);
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!this.state.isDragging) return;
+          const p = getPos(e);
+          this.state.offsetX += p.x - this.state.lastX;
+          this.state.offsetY += p.y - this.state.lastY;
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+          this.renderSingle();
+        });
+
+        window.addEventListener("mouseup", () => { this.state.isDragging = false; });
+
+        canvas.addEventListener("touchstart", (e) => {
+          if (!this.state.img) return;
+          this.state.isDragging = true;
+          const p = getPos(e);
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+        }, { passive: false });
+
+        canvas.addEventListener("touchmove", (e) => {
+          if (!this.state.isDragging) return;
+          e.preventDefault();
+          const p = getPos(e);
+          this.state.offsetX += p.x - this.state.lastX;
+          this.state.offsetY += p.y - this.state.lastY;
+          this.state.lastX = p.x;
+          this.state.lastY = p.y;
+          this.renderSingle();
+        }, { passive: false });
+
+        canvas.addEventListener("touchend", () => { this.state.isDragging = false; });
+
+        // Unduh Satuan
+        document.getElementById("t7DownloadSingle").addEventListener("click", async () => {
+          const blob = await AppCore.canvasToBlob(canvas, "image/jpeg", 0.95);
+          AppCore.downloadBlob(blob, `pas-foto-${this.state.sizeKey}-${Date.now()}.jpg`);
+          AppCore.toast(`Pas foto ${this.state.sizeKey} berhasil diunduh!`, "success");
+        });
+
+        // Unduh Lembar Cetak 4R (10.2 x 15.2 cm = 1200 x 1800 px pada 300 DPI)
+        document.getElementById("t7Download4R").addEventListener("click", async () => {
+          const sheet = document.createElement("canvas");
+          sheet.width = 1200; // 4 inch * 300 DPI
+          sheet.height = 1800; // 6 inch * 300 DPI
+          const sCtx = sheet.getContext("2d");
+
+          sCtx.fillStyle = "#ffffff";
+          sCtx.fillRect(0, 0, sheet.width, sheet.height);
+
+          const pw = canvas.width;
+          const ph = canvas.height;
+          const gap = 36; // Jarak potong antar foto
+
+          const cols = Math.floor((sheet.width - gap) / (pw + gap));
+          const rows = Math.floor((sheet.height - gap) / (ph + gap));
+          const totalW = cols * pw + (cols - 1) * gap;
+          const totalH = rows * ph + (rows - 1) * gap;
+          const startX = Math.floor((sheet.width - totalW) / 2);
+          const startY = Math.floor((sheet.height - totalH) / 2);
+
+          let count = 0;
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const x = startX + c * (pw + gap);
+              const y = startY + r * (ph + gap);
+              sCtx.drawImage(canvas, x, y);
+
+              // Garis bantu potong tipis
+              sCtx.strokeStyle = "#cbd5e1";
+              sCtx.lineWidth = 2;
+              sCtx.strokeRect(x - 1, y - 1, pw + 2, ph + 2);
+              count++;
+            }
+          }
+
+          const blob = await AppCore.canvasToBlob(sheet, "image/jpeg", 0.95);
+          AppCore.downloadBlob(blob, `cetak-4R-pas-foto-${this.state.sizeKey}-${count}pcs.jpg`);
+          AppCore.toast(`Lembar 4R berisi ${count} pas foto siap cetak diunduh!`, "success");
+        });
+      },
+
+      resetFit() {
+        const spec = this.specs[this.state.sizeKey];
+        const scale = Math.max(spec.w / this.state.img.width, spec.h / this.state.img.height);
+        this.state.zoom = Number(scale.toFixed(2));
+        this.state.offsetX = 0;
+        this.state.offsetY = 0;
+        document.getElementById("t7Zoom").value = this.state.zoom;
+        document.getElementById("t7ZoomVal").textContent = Math.round(this.state.zoom * 100) + "%";
+      },
+
+      renderSingle() {
+        const canvas = document.getElementById("t7Canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = this.state.bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (this.state.img) {
+          const w = this.state.img.width * this.state.zoom;
+          const h = this.state.img.height * this.state.zoom;
+          const x = (canvas.width - w) / 2 + this.state.offsetX;
+          const y = (canvas.height - h) / 2 + this.state.offsetY;
+          ctx.drawImage(this.state.img, x, y, w, h);
+        } else {
+          ctx.fillStyle = this.state.bgColor === "#ffffff" ? "#64748b" : "rgba(255,255,255,0.85)";
+          ctx.font = "600 16px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(`Bingkai ${this.specs[this.state.sizeKey].label}`, canvas.width / 2, canvas.height / 2);
+        }
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 8: WATERMARK DOKUMEN (Teks Diagonal Berulang untuk KTP/KK/Scan)
+       ========================================================================== */
+    const Tool8_WatermarkDoc = {
+      state: {
+        img: null,
+        text: `Untuk keperluan verifikasi - ${AppCore.getTodayFormatted()}`,
+        opacity: 0.35,
+        fontSize: 28,
+        gap: 140,
+        color: "#dc2626"
+      },
+
+      mount(container) {
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t8Drop">
+                <div class="dropzone-icon">🛡️</div>
+                <div class="dropzone-title">Upload Foto / Scan Dokumen (KTP, KK, Ijazah, dll)</div>
+                <div class="dropzone-sub">100% aman diproses lokal di perangkatmu</div>
+                <input type="file" id="t8File" accept="image/*" class="hidden" />
+              </div>
+
+              <div class="canvas-stage" style="margin-top:16px;">
+                <canvas id="t8Canvas" width="600" height="380"></canvas>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Teks Watermark</label>
+                <input type="text" id="t8Text" value="${AppCore.escapeHtml(this.state.text)}" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Transparansi (Opacity) <span class="val-badge" id="t8OpVal">35%</span></label>
+                <input type="range" id="t8Opacity" min="10" max="90" value="35" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ukuran Teks <span class="val-badge" id="t8SizeVal">28 px</span></label>
+                <input type="range" id="t8Size" min="14" max="80" value="28" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Kerapatan / Jarak Baris <span class="val-badge" id="t8GapVal">140 px</span></label>
+                <input type="range" id="t8Gap" min="60" max="320" value="140" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Warna Watermark</label>
+                <div class="row-flex">
+                  <input type="color" id="t8Color" value="#dc2626" />
+                  <button type="button" class="btn btn-secondary btn-sm t8-preset-col" data-col="#dc2626">Merah</button>
+                  <button type="button" class="btn btn-secondary btn-sm t8-preset-col" data-col="#1e293b">Hitam</button>
+                  <button type="button" class="btn btn-secondary btn-sm t8-preset-col" data-col="#1d4ed8">Biru</button>
+                </div>
+              </div>
+
+              <div class="grid-2" style="margin-top:20px;">
+                <button type="button" class="btn btn-primary" id="t8DownloadJpg">⬇️ Unduh JPG</button>
+                <button type="button" class="btn btn-success" id="t8DownloadPng">⬇️ Unduh PNG</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.render();
+        const canvas = document.getElementById("t8Canvas");
+
+        AppCore.setupDropzone(document.getElementById("t8Drop"), document.getElementById("t8File"), async (files) => {
+          try {
+            const img = await AppCore.loadImageFromFile(files[0]);
+            this.state.img = img;
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Sesuaikan ukuran font awal agar proporsional dengan resolusi dokumen
+            const autoFont = Math.max(18, Math.round(img.width / 28));
+            const autoGap = autoFont * 5;
+            this.state.fontSize = autoFont;
+            this.state.gap = autoGap;
+            document.getElementById("t8Size").value = autoFont;
+            document.getElementById("t8SizeVal").textContent = autoFont + " px";
+            document.getElementById("t8Gap").value = Math.min(320, autoGap);
+            document.getElementById("t8GapVal").textContent = Math.min(320, autoGap) + " px";
+
+            this.render();
+            AppCore.toast("Dokumen dimuat dengan watermark keamanan!", "success");
+          } catch (e) {}
+        });
+
+        document.getElementById("t8Text").addEventListener("input", (e) => {
+          this.state.text = e.target.value;
+          this.render();
+        });
+        document.getElementById("t8Opacity").addEventListener("input", (e) => {
+          this.state.opacity = parseInt(e.target.value, 10) / 100;
+          document.getElementById("t8OpVal").textContent = e.target.value + "%";
+          this.render();
+        });
+        document.getElementById("t8Size").addEventListener("input", (e) => {
+          this.state.fontSize = parseInt(e.target.value, 10);
+          document.getElementById("t8SizeVal").textContent = this.state.fontSize + " px";
+          this.render();
+        });
+        document.getElementById("t8Gap").addEventListener("input", (e) => {
+          this.state.gap = parseInt(e.target.value, 10);
+          document.getElementById("t8GapVal").textContent = this.state.gap + " px";
+          this.render();
+        });
+        document.getElementById("t8Color").addEventListener("input", (e) => {
+          this.state.color = e.target.value;
+          this.render();
+        });
+        document.querySelectorAll(".t8-preset-col").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            this.state.color = btn.dataset.col;
+            document.getElementById("t8Color").value = btn.dataset.col;
+            this.render();
+          });
+        });
+
+        document.getElementById("t8DownloadJpg").addEventListener("click", async () => {
+          const blob = await AppCore.canvasToBlob(canvas, "image/jpeg", 0.92);
+          AppCore.downloadBlob(blob, `dokumen-watermark-${Date.now()}.jpg`);
+          AppCore.toast("Dokumen JPG berhasil diunduh!", "success");
+        });
+
+        document.getElementById("t8DownloadPng").addEventListener("click", async () => {
+          const blob = await AppCore.canvasToBlob(canvas, "image/png");
+          AppCore.downloadBlob(blob, `dokumen-watermark-${Date.now()}.png`);
+          AppCore.toast("Dokumen PNG berhasil diunduh!", "success");
+        });
+      },
+
+      render() {
+        const canvas = document.getElementById("t8Canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (this.state.img) {
+          ctx.drawImage(this.state.img, 0, 0);
+        } else {
+          ctx.fillStyle = "#f1f5f9";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = "#94a3b8";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+          ctx.fillStyle = "#475569";
+          ctx.font = "600 16px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Contoh Preview Dokumen (Upload scan dokumenmu)", canvas.width / 2, canvas.height / 2);
+        }
+
+        const label = this.state.text.trim();
+        if (!label) return;
+
+        ctx.save();
+        ctx.globalAlpha = this.state.opacity;
+        ctx.fillStyle = this.state.color;
+        ctx.font = `700 ${this.state.fontSize}px sans-serif`;
+
+        const textWidth = ctx.measureText(label).width + 60;
+        const stepY = this.state.gap;
+        const diag = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
+
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((-30 * Math.PI) / 180);
+
+        for (let y = -diag; y <= diag; y += stepY) {
+          for (let x = -diag; x <= diag; x += textWidth) {
+            ctx.fillText(label, x, y);
+          }
+        }
+        ctx.restore();
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 9: GAMBAR KE PDF (Drag & Drop Urutan + Kertas A4/F4 + jsPDF)
+       ========================================================================== */
+    const Tool9_ImageToPdf = {
+      pages: [],
+      dragIndex: null,
+
+      mount(container) {
+        this.pages = [];
+
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="dropzone" id="t9Drop">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-title">Pilih atau Seret Beberapa Gambar Sekaligus</div>
+                <div class="dropzone-sub">Seret kartu halaman untuk mengatur urutan sebelum membuat PDF</div>
+                <input type="file" id="t9File" accept="image/*" multiple class="hidden" />
+              </div>
+
+              <div class="file-list" id="t9PageList"></div>
+            </div>
+
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Ukuran Kertas</label>
+                <select id="t9PaperSize">
+                  <option value="a4">A4 (210 × 297 mm)</option>
+                  <option value="f4">F4 / Folio Indonesia (215 × 330 mm)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Orientasi Halaman</label>
+                <select id="t9Orientation">
+                  <option value="portrait">Portrait (Tegak)</option>
+                  <option value="landscape">Landscape (Mendatar)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Margin Halaman (mm)</label>
+                <select id="t9Margin">
+                  <option value="0">Tanpa Margin (Full Kertas)</option>
+                  <option value="10" selected>Tipis (10 mm)</option>
+                  <option value="20">Standar (20 mm)</option>
+                </select>
+              </div>
+
+              <button type="button" class="btn btn-primary btn-full" id="t9GeneratePdfBtn" style="margin-top:20px;" disabled>
+                📥 Gabungkan &amp; Unduh PDF
+              </button>
+            </div>
+          </div>
+        `;
+
+        AppCore.setupDropzone(document.getElementById("t9Drop"), document.getElementById("t9File"), async (files) => {
+          AppCore.setLoading(true, "Memuat gambar halaman...");
+          try {
+            for (const file of files) {
+              if (!AppCore.validateImageFile(file)) continue;
+              const img = await AppCore.loadImageFromFile(file);
+              this.pages.push({
+                id: Date.now() + Math.random(),
+                name: file.name,
+                img,
+                thumbUrl: img.src
+              });
+            }
+            this.renderPages();
+            if (this.pages.length > 0) {
+              AppCore.toast(`${this.pages.length} halaman siap digabung menjadi PDF!`, "success");
+            }
+          } finally {
+            AppCore.setLoading(false);
+          }
+        });
+
+        document.getElementById("t9GeneratePdfBtn").addEventListener("click", async () => {
+          if (this.pages.length === 0) return;
+          if (!window.jspdf || !window.jspdf.jsPDF) {
+            AppCore.toast("Library jsPDF gagal dimuat. Periksa koneksi internet.", "error");
+            return;
+          }
+
+          AppCore.setLoading(true, "Menyusun dokumen PDF...");
+          try {
+            const { jsPDF } = window.jspdf;
+            const paper = document.getElementById("t9PaperSize").value;
+            const orientation = document.getElementById("t9Orientation").value;
+            const margin = parseInt(document.getElementById("t9Margin").value, 10);
+
+            // F4 = [215, 330] mm, A4 = "a4"
+            const format = paper === "f4" ? [215, 330] : "a4";
+            const doc = new jsPDF({ orientation, unit: "mm", format });
+
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            const availW = pageW - margin * 2;
+            const availH = pageH - margin * 2;
+
+            for (let i = 0; i < this.pages.length; i++) {
+              if (i > 0) doc.addPage(format, orientation);
+              const img = this.pages[i].img;
+
+              // Konversi gambar ke canvas JPEG bersih agar kompatibel 100% dengan jsPDF
+              const c = document.createElement("canvas");
+              c.width = img.width;
+              c.height = img.height;
+              const ctx = c.getContext("2d");
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, c.width, c.height);
+              ctx.drawImage(img, 0, 0);
+              const dataUrl = c.toDataURL("image/jpeg", 0.92);
+
+              const ratio = Math.min(availW / img.width, availH / img.height);
+              const drawW = img.width * ratio;
+              const drawH = img.height * ratio;
+              const x = margin + (availW - drawW) / 2;
+              const y = margin + (availH - drawH) / 2;
+
+              doc.addImage(dataUrl, "JPEG", x, y, drawW, drawH);
+            }
+
+            doc.save(`dokumen-gabungan-${Date.now()}.pdf`);
+            AppCore.toast("File PDF berhasil dibuat dan diunduh!", "success");
+          } catch (err) {
+            AppCore.toast("Terjadi kesalahan saat membuat PDF.", "error");
+          } finally {
+            AppCore.setLoading(false);
+          }
+        });
+      },
+
+      renderPages() {
+        const list = document.getElementById("t9PageList");
+        document.getElementById("t9GeneratePdfBtn").disabled = this.pages.length === 0;
+        list.innerHTML = "";
+
+        this.pages.forEach((page, idx) => {
+          const item = document.createElement("div");
+          item.className = "file-item";
+          item.draggable = true;
+          item.style.cursor = "grab";
+
+          item.innerHTML = `
+            <div class="file-item-info">
+              <span style="font-weight:800; color:var(--accent-text); min-width:24px;">#${idx + 1}</span>
+              <img src="${page.thumbUrl}" class="file-thumb" alt="Halaman ${idx + 1}" />
+              <div class="file-meta">
+                <div class="file-name">${AppCore.escapeHtml(page.name)}</div>
+                <div class="file-stats">${page.img.width} × ${page.img.height} px</div>
+              </div>
+            </div>
+            <div class="row-flex">
+              <button type="button" class="btn btn-secondary btn-sm" data-up="${idx}" ${idx === 0 ? "disabled" : ""} title="Geser Naik">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-down="${idx}" ${idx === this.pages.length - 1 ? "disabled" : ""} title="Geser Turun">↓</button>
+              <button type="button" class="btn btn-danger btn-sm" data-del="${idx}" title="Hapus">✕</button>
+            </div>
+          `;
+
+          // Drag and drop urutan halaman
+          item.addEventListener("dragstart", () => {
+            this.dragIndex = idx;
+            item.style.opacity = "0.5";
+          });
+          item.addEventListener("dragend", () => {
+            item.style.opacity = "1";
+          });
+          item.addEventListener("dragover", (e) => e.preventDefault());
+          item.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (this.dragIndex === null || this.dragIndex === idx) return;
+            const moved = this.pages.splice(this.dragIndex, 1)[0];
+            this.pages.splice(idx, 0, moved);
+            this.dragIndex = null;
+            this.renderPages();
+          });
+
+          // Tombol naik/turun/hapus untuk sentuhan mobile
+          item.querySelector(`[data-up="${idx}"]`).addEventListener("click", () => {
+            if (idx === 0) return;
+            [this.pages[idx - 1], this.pages[idx]] = [this.pages[idx], this.pages[idx - 1]];
+            this.renderPages();
+          });
+          item.querySelector(`[data-down="${idx}"]`).addEventListener("click", () => {
+            if (idx === this.pages.length - 1) return;
+            [this.pages[idx + 1], this.pages[idx]] = [this.pages[idx], this.pages[idx + 1]];
+            this.renderPages();
+          });
+          item.querySelector(`[data-del="${idx}"]`).addEventListener("click", () => {
+            this.pages.splice(idx, 1);
+            this.renderPages();
+          });
+
+          list.appendChild(item);
+        });
+      }
+    };
+
+    /* ==========================================================================
+       TOOL 10: PEMBUAT QR CODE (Teks / URL / WiFi + Warna + Ukuran PNG)
+       ========================================================================== */
+    const Tool10_QrGenerator = {
+      mount(container) {
+        container.innerHTML = `
+          <div class="two-col">
+            <div class="panel">
+              <div class="form-group">
+                <label class="form-label">Jenis Konten QR Code</label>
+                <select id="t10Type">
+                  <option value="url">URL / Tautan Website</option>
+                  <option value="text">Teks Bebas / Pesan</option>
+                  <option value="wifi">Akses WiFi (Otomatis Connect)</option>
+                </select>
+              </div>
+
+              <!-- Input Teks / URL -->
+              <div id="t10StandardWrap">
+                <div class="form-group">
+                  <label class="form-label" id="t10InputLabel">Masukkan URL / Link</label>
+                  <textarea id="t10MainText" rows="3" placeholder="https://contoh.id">https://blux.tools</textarea>
+                </div>
+              </div>
+
+              <!-- Input Khusus WiFi -->
+              <div id="t10WifiWrap" class="hidden">
+                <div class="form-group">
+                  <label class="form-label">Nama WiFi (SSID)</label>
+                  <input type="text" id="t10WifiSsid" placeholder="Contoh: WiFi_Rumah_5G" />
+                </div>
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Password WiFi</label>
+                    <input type="text" id="t10WifiPass" placeholder="Password..." />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Keamanan</label>
+                    <select id="t10WifiEnc">
+                      <option value="WPA">WPA / WPA2</option>
+                      <option value="WEP">WEP</option>
+                      <option value="nopass">Tanpa Password</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Warna QR</label>
+                  <input type="color" id="t10FgColor" value="#0f172a" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Warna Background</label>
+                  <input type="color" id="t10BgColor" value="#ffffff" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ukuran Ekspor PNG <span class="val-badge" id="t10SizeVal">400 × 400 px</span></label>
+                <input type="range" id="t10Size" min="200" max="1000" step="50" value="400" />
+              </div>
+
+              <button type="button" class="btn btn-primary btn-full" id="t10DownloadBtn" style="margin-top:16px;">
+                ⬇️ Unduh QR Code (PNG)
+              </button>
+            </div>
+
+            <div class="panel">
+              <div class="qr-preview-box" id="t10PreviewBox">
+                <div id="t10QrMount" style="padding:16px; background:#ffffff; border-radius:12px;"></div>
+                <p style="margin-top:14px; font-size:0.85rem; color:var(--text-secondary); text-align:center;">
+                  Arahkan kamera HP untuk menguji hasil scan QR Code di atas.
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const typeSel = document.getElementById("t10Type");
+        typeSel.addEventListener("change", () => {
+          const isWifi = typeSel.value === "wifi";
+          document.getElementById("t10StandardWrap").classList.toggle("hidden", isWifi);
+          document.getElementById("t10WifiWrap").classList.toggle("hidden", !isWifi);
+          if (!isWifi) {
+            document.getElementById("t10InputLabel").textContent =
+              typeSel.value === "url" ? "Masukkan URL / Link" : "Masukkan Teks Bebas";
+          }
+          this.generate();
+        });
+
+        ["t10MainText", "t10WifiSsid", "t10WifiPass", "t10WifiEnc", "t10FgColor", "t10BgColor"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => this.generate());
+        });
+
+        document.getElementById("t10Size").addEventListener("input", (e) => {
+          document.getElementById("t10SizeVal").textContent = `${e.target.value} × ${e.target.value} px`;
+        });
+
+        document.getElementById("t10DownloadBtn").addEventListener("click", () => {
+          const payload = this.getPayload();
+          if (!payload) {
+            AppCore.toast("Isi konten QR Code terlebih dahulu!", "warning");
+            return;
+          }
+          const size = parseInt(document.getElementById("t10Size").value, 10);
+          const fg = document.getElementById("t10FgColor").value;
+          const bg = document.getElementById("t10BgColor").value;
+
+          // Render QR resolusi tinggi di kontainer tersembunyi untuk diunduh
+          const tempDiv = document.createElement("div");
+          new QRCode(tempDiv, {
+            text: payload,
+            width: size,
+            height: size,
+            colorDark: fg,
+            colorLight: bg,
+            correctLevel: QRCode.CorrectLevel.H
+          });
+
+          setTimeout(async () => {
+            const qrCanvas = tempDiv.querySelector("canvas");
+            if (qrCanvas) {
+              // Tambahkan sedikit quiet zone padding putih/bg agar mudah discan
+              const pad = Math.round(size * 0.06);
+              const out = document.createElement("canvas");
+              out.width = size + pad * 2;
+              out.height = size + pad * 2;
+              const ctx = out.getContext("2d");
+              ctx.fillStyle = bg;
+              ctx.fillRect(0, 0, out.width, out.height);
+              ctx.drawImage(qrCanvas, pad, pad);
+
+              const blob = await AppCore.canvasToBlob(out, "image/png");
+              AppCore.downloadBlob(blob, `qrcode-${Date.now()}.png`);
+              AppCore.toast("QR Code PNG berhasil diunduh!", "success");
+            }
+          }, 50);
+        });
+
+        this.generate();
+      },
+
+      getPayload() {
+        const type = document.getElementById("t10Type").value;
+        if (type === "wifi") {
+          const ssid = document.getElementById("t10WifiSsid").value.trim();
+          const pass = document.getElementById("t10WifiPass").value;
+          const enc = document.getElementById("t10WifiEnc").value;
+          if (!ssid) return "";
+          return `WIFI:T:${enc};S:${ssid};P:${pass};;`;
+        }
+        return document.getElementById("t10MainText").value.trim();
+      },
+
+      generate() {
+        const mount = document.getElementById("t10QrMount");
+        if (!mount) return;
+        if (typeof QRCode === "undefined") {
+          mount.textContent = "Library QRCode belum siap.";
+          return;
+        }
+
+        const payload = this.getPayload() || "https://blux.tools";
+        const fg = document.getElementById("t10FgColor").value;
+        const bg = document.getElementById("t10BgColor").value;
+
+        mount.innerHTML = "";
+        mount.style.backgroundColor = bg;
+
+        new QRCode(mount, {
+          text: payload,
+          width: 240,
+          height: 240,
+          colorDark: fg,
+          colorLight: bg,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    };
+
+    // Jalankan Aplikasi saat DOM Siap
+    document.addEventListener("DOMContentLoaded", () => {
+      AppCore.init();
+    });
+  </script>
+</body>
+</html>
